@@ -40,7 +40,7 @@ namespace Ispas_Vlad_Traian_Lab2.Migrations
 
                     b.HasKey("AuthorID");
 
-                    b.ToTable("Authors", (string)null);
+                    b.ToTable("Author", (string)null);
                 });
 
             modelBuilder.Entity("Ispas_Vlad_Traian_Lab2.Models.Book", b =>

@@ -16,16 +16,8 @@ namespace Ispas_Vlad_Traian_Lab2.Data
         {
             modelBuilder.Entity<Customer>().ToTable("Customer");
             modelBuilder.Entity<Order>().ToTable("Order");
-            modelBuilder.Entity<Author>().ToTable("Authors");
+            modelBuilder.Entity<Author>().ToTable("Author");
             modelBuilder.Entity<Book>().ToTable("Book");
-
-            modelBuilder.Entity<Book>()
-                .HasOne(b => b.Author)
-                .WithMany(a => a.Books)
-                .HasForeignKey(b => b.AuthorID)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            base.OnModelCreating(modelBuilder);
         }
     }
 }

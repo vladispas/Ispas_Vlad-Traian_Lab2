@@ -22,10 +22,17 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         // GET: Books
         public async Task<IActionResult> Index()
         {
-              return _context.Books != null ? 
-                          View(await _context.Books.ToListAsync()) :
-                          Problem("Entity set 'LibraryContext.Books'  is null.");
+            if (_context.Books != null)
+            {
+                var booksWithAuthors = await _context.Books.Include(b => b.Author).ToListAsync();
+                return View(booksWithAuthors);
+            }
+            else
+            {
+                return Problem("Entity set 'LibraryContext.Books' is null.");
+            }
         }
+
 
         // GET: Books/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -36,6 +43,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             }
 
             var book = await _context.Books
+                .Include(b => b.Author)
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (book == null)
             {
@@ -48,6 +56,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         // GET: Books/Create
         public IActionResult Create()
         {
+            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "LastName");
             return View();
         }
 
@@ -56,7 +65,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Title,Author,Price")] Book book)
+        public async Task<IActionResult> Create([Bind("ID,Title,AuthorID,Price")] Book book)
         {
             if (ModelState.IsValid)
             {
@@ -64,6 +73,8 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "LastName", book.AuthorID);
             return View(book);
         }
 
@@ -80,6 +91,8 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             {
                 return NotFound();
             }
+
+            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "LastName", book.AuthorID);
             return View(book);
         }
 
@@ -88,7 +101,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Title,Author,Price")] Book book)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Title,AuthorID,Price")] Book book)
         {
             if (id != book.ID)
             {
@@ -115,6 +128,8 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "LastName", book.AuthorID);
             return View(book);
         }
 
@@ -127,6 +142,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             }
 
             var book = await _context.Books
+                .Include(b => b.Author)
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (book == null)
             {

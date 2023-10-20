@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ispas_Vlad_Traian_Lab2.Migrations
 {
     [DbContext(typeof(LibraryContext))]
-    [Migration("20231019161056_AddedAuthor")]
-    partial class AddedAuthor
+    [Migration("20231020111025_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,7 +43,7 @@ namespace Ispas_Vlad_Traian_Lab2.Migrations
 
                     b.HasKey("AuthorID");
 
-                    b.ToTable("Authors", (string)null);
+                    b.ToTable("Author", (string)null);
                 });
 
             modelBuilder.Entity("Ispas_Vlad_Traian_Lab2.Models.Book", b =>
@@ -121,7 +121,7 @@ namespace Ispas_Vlad_Traian_Lab2.Migrations
             modelBuilder.Entity("Ispas_Vlad_Traian_Lab2.Models.Book", b =>
                 {
                     b.HasOne("Ispas_Vlad_Traian_Lab2.Models.Author", "Author")
-                        .WithMany()
+                        .WithMany("Books")
                         .HasForeignKey("AuthorID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -146,6 +146,11 @@ namespace Ispas_Vlad_Traian_Lab2.Migrations
                     b.Navigation("Book");
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Ispas_Vlad_Traian_Lab2.Models.Author", b =>
+                {
+                    b.Navigation("Books");
                 });
 
             modelBuilder.Entity("Ispas_Vlad_Traian_Lab2.Models.Book", b =>

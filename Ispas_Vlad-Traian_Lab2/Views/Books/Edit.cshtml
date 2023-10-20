@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ID" />
             <div class="form-group">
@@ -19,9 +19,8 @@
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Author" class="control-label"></label>
-                <input asp-for="Author" class="form-control" />
-                <span asp-validation-for="Author" class="text-danger"></span>
+                <label asp-for="AuthorID" class="control-label"></label>
+                <select asp-for="AuthorID" class="form-control" asp-items="ViewBag.AuthorID as SelectList"></select>
             </div>
             <div class="form-group">
                 <label asp-for="Price" class="control-label"></label>
