@@ -146,7 +146,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(int? id)
+        public async Task<IActionResult > EditPost(int? id)
         {
             if (id == null)
             {
