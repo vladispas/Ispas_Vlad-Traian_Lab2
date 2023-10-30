@@ -1,4 +1,6 @@
-﻿namespace Ispas_Vlad_Traian_Lab2.Models.LibraryViewModels
+﻿using LibraryModel.Models;
+
+namespace Ispas_Vlad_Traian_Lab2.Models.LibraryViewModels
 {
     public class PublisherIndexData
     {

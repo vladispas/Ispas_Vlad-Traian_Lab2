@@ -25,25 +25,29 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         {
             var viewModel = new PublisherIndexData();
             viewModel.Publishers = await _context.Publishers
-            .Include(i => i.PublishedBooks)
-            .ThenInclude(i => i.Book)
-            .ThenInclude(i => i.Orders)
-            .ThenInclude(i => i.Customer)
-            .AsNoTracking()
-            .OrderBy(i => i.PublisherName)
-            .ToListAsync();
+                .Include(i => i.PublishedBooks)
+                    .ThenInclude(i => i.Book)
+                        .ThenInclude(i => i.Orders)
+                            .ThenInclude(i => i.Customer)
+                                .Include(i => i.PublishedBooks)
+                                    .ThenInclude(i => i.Book)
+                                        .ThenInclude(i => i.Author)
+                .AsNoTracking()
+                .OrderBy(i => i.PublisherName)
+                .ToListAsync();
             if (id != null)
             {
                 ViewData["PublisherID"] = id.Value;
                 Publisher publisher = viewModel.Publishers.Where(
-                i => i.ID == id.Value).Single();
+                    i => i.ID == id.Value).Single();
                 viewModel.Books = publisher.PublishedBooks.Select(s => s.Book);
             }
             if (bookID != null)
             {
-                ViewData["BoookID"] = bookID.Value;
+                ViewData["BookID"] = bookID.Value;
                 viewModel.Orders = viewModel.Books.Where(
-                x => x.ID == bookID).Single().Orders;
+                        x => x.ID == bookID).Single().Orders;
+
             }
             return View(viewModel);
         }
@@ -95,20 +99,15 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             {
                 return NotFound();
             }
-
             var publisher = await _context.Publishers
-                .Include(i => i.PublishedBooks)
-                .ThenInclude(i => i.Book)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.ID == id);
-
+            .Include(i => i.PublishedBooks).ThenInclude(i => i.Book)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.ID == id);
             if (publisher == null)
             {
                 return NotFound();
             }
-
             PopulatePublishedBookData(publisher);
-
             return View(publisher);
         }
 
@@ -117,7 +116,6 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             var allBooks = _context.Books;
             var publisherBooks = new HashSet<int>(publisher.PublishedBooks.Select(c => c.BookID));
             var viewModel = new List<PublishedBookData>();
-
             foreach (var book in allBooks)
             {
                 viewModel.Add(new PublishedBookData
@@ -127,7 +125,6 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
                     IsPublished = publisherBooks.Contains(book.ID)
                 });
             }
-
             ViewData["Books"] = viewModel;
         }
 
@@ -167,6 +164,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             PopulatePublishedBookData(publisherToUpdate);
             return View(publisherToUpdate);
         }
+
         private void UpdatePublishedBooks(string[] selectedBooks, Publisher publisherToUpdate)
         {
             if (selectedBooks == null)
@@ -183,14 +181,20 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
                 {
                     if (!publishedBooks.Contains(book.ID))
                     {
-                        publisherToUpdate.PublishedBooks.Add(new PublishedBook { PublisherID = publisherToUpdate.ID, BookID = book.ID });
+                        publisherToUpdate.PublishedBooks.Add(new PublishedBook
+                        {
+                            PublisherID =
+                        publisherToUpdate.ID,
+                            BookID = book.ID
+                        });
                     }
                 }
                 else
                 {
                     if (publishedBooks.Contains(book.ID))
                     {
-                        PublishedBook bookToRemove = publisherToUpdate.PublishedBooks.FirstOrDefault(i => i.BookID == book.ID);
+                        PublishedBook bookToRemove = publisherToUpdate.PublishedBooks.FirstOrDefault(i
+                        => i.BookID == book.ID);
                         _context.Remove(bookToRemove);
                     }
                 }
@@ -229,14 +233,14 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             {
                 _context.Publishers.Remove(publisher);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool PublisherExists(int id)
         {
-          return (_context.Publishers?.Any(e => e.ID == id)).GetValueOrDefault();
+            return (_context.Publishers?.Any(e => e.ID == id)).GetValueOrDefault();
         }
     }
 }

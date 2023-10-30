@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Ispas_Vlad_Traian_Lab2.Models;
+using Microsoft.EntityFrameworkCore;
 using Ispas_Vlad_Traian_Lab2.Models;
 
 namespace Ispas_Vlad_Traian_Lab2.Data
 {
-    public class LibraryContext:DbContext
+    public class LibraryContext : DbContext
     {
-        public LibraryContext(DbContextOptions<LibraryContext> options) : base(options) { }
-
+        public LibraryContext(DbContextOptions<LibraryContext> options) :
+        base(options)
+        {
+        }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Author> Authors { get; set; }
@@ -25,6 +28,8 @@ namespace Ispas_Vlad_Traian_Lab2.Data
 
             modelBuilder.Entity<PublishedBook>()
                 .HasKey(c => new { c.BookID, c.PublisherID });
+
+            modelBuilder.Entity<Book>().HasOne(b=>b.Author).WithMany(a=>a.Books).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -20,32 +20,28 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         }
 
         // GET: Books
-        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
+        public async Task<IActionResult> Index(string sortOrder,string currentFilter, string searchString, int? pageNumber)
         {
             ViewData["CurrentSort"] = sortOrder;
-            ViewData["TitleSortParam"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
-            ViewData["PriceSortParam"] = sortOrder == "Price" ? "price_desc" : "Price";
-
+            ViewData["TitleSortParm"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
+            ViewData["PriceSortParm"] = sortOrder == "Price" ? "price_desc" : "Price";
+            ViewData["CurrentFilter"] = searchString;
             if (searchString != null)
             {
                 pageNumber = 1;
-            } 
+            }
             else
             {
                 searchString = currentFilter;
             }
-
             ViewData["CurrentFilter"] = searchString;
-
-            var books = from b in _context.Books
-                        select b;
-
+            var books = from book in _context.Books
+                        select book;
             if (!String.IsNullOrEmpty(searchString))
             {
                 books = books.Where(s => s.Title.Contains(searchString));
             }
-
-            switch(sortOrder)
+            switch (sortOrder)
             {
                 case "title_desc":
                     books = books.OrderByDescending(b => b.Title);
@@ -60,10 +56,9 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
                     books = books.OrderBy(b => b.Title);
                     break;
             }
-
             int pageSize = 2;
-
-            return View(await PaginatedList<Book>.CreateAsync(books.AsNoTracking(), pageNumber ?? 1, pageSize));
+            books = books.Include(book => book.Author).AsNoTracking();
+            return View(await PaginatedList<Book>.CreateAsync(books, pageNumber ?? 1, pageSize));
         }
 
 
@@ -76,12 +71,11 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             }
 
             var book = await _context.Books
-                .Include(b => b.Author)
-                .Include(s => s.Orders)
-                .ThenInclude(e => e.Customer)
+                .Include(book => book.Author)
+                .Include(order => order.Orders)
+                .ThenInclude(customer => customer.Customer)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
-
             if (book == null)
             {
                 return NotFound();
@@ -93,7 +87,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         // GET: Books/Create
         public IActionResult Create()
         {
-            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "LastName");
+            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "FullName");
             return View();
         }
 
@@ -112,14 +106,14 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
-            } 
+            }
             catch (DbUpdateException ex)
             {
-                ModelState.AddModelError("", "Unable to save changes. " + "Try again, and if the problem persists ");
+                ModelState.AddModelError("", "Unable to save changes. " +
+                "Try again, and if the problem persists ");
             }
-            
 
-            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "LastName", book.AuthorID);
+            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "FullName", book.AuthorID);
             return View(book);
         }
 
@@ -137,7 +131,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
                 return NotFound();
             }
 
-            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "LastName", book.AuthorID);
+            ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "FullName", book.AuthorID);
             return View(book);
         }
 
@@ -146,29 +140,29 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult > EditPost(int? id)
+        public async Task<IActionResult> EditPost(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-
             var bookToUpdate = await _context.Books.FirstOrDefaultAsync(s => s.ID == id);
-
-            if (await TryUpdateModelAsync<Book>(bookToUpdate, "", s => s.AuthorID, s => s.Title, s => s.Price))
+            if (await TryUpdateModelAsync<Book>(
+            bookToUpdate,
+            "",
+            s => s.Author, s => s.Title, s => s.Price))
             {
                 try
                 {
                     await _context.SaveChangesAsync();
-
                     return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateException ex)
+                catch (DbUpdateException /* ex */)
                 {
-                    ModelState.AddModelError("", "Unable to save changes. " + "Try again, and if the error persists");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists");
                 }
             }
-
             return View(bookToUpdate);
         }
 
@@ -181,16 +175,18 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             }
 
             var book = await _context.Books
-                .Include(b => b.Author)
+                .Include(book => book.Author)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (book == null)
             {
                 return NotFound();
             }
+
             if (saveChangesError.GetValueOrDefault())
             {
-                ViewData["ErrorMessage"] = "Delete failed. Try again";
+                ViewData["ErrorMessage"] =
+                "Delete failed. Try again";
             }
 
             return View(book);
@@ -210,15 +206,13 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
             {
                 return RedirectToAction(nameof(Index));
             }
-
             try
             {
                 _context.Books.Remove(book);
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException /* ex */)
             {
                 return RedirectToAction(nameof(Delete), new { id = id, saveChangesError = true });
             }
@@ -226,7 +220,7 @@ namespace Ispas_Vlad_Traian_Lab2.Controllers
 
         private bool BookExists(int id)
         {
-          return (_context.Books?.Any(e => e.ID == id)).GetValueOrDefault();
+            return (_context.Books?.Any(e => e.ID == id)).GetValueOrDefault();
         }
     }
 }
